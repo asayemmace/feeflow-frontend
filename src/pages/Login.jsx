@@ -10,6 +10,7 @@ const Login = () => {
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
 
+  // Redirect if already logged in
   useEffect(() => {
     if (token) navigate('/dashboard');
   }, [token, navigate]);
@@ -19,9 +20,11 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
+      // Call login from AuthContext
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
+      // Show backend error message if available
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);

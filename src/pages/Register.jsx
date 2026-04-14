@@ -9,6 +9,7 @@ const Register = () => {
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Redirect if already logged in
   useEffect(() => {
     if (token) navigate('/dashboard');
   }, [token, navigate]);
@@ -18,10 +19,20 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (form.password !== form.confirm) { setError('Passwords do not match'); return; }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
+
+    // Basic validation
+    if (form.password !== form.confirm) {
+      setError('Passwords do not match');
+      return;
+    }
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
     try {
+      // Call register from AuthContext
       await register(form.name, form.email, form.password, form.schoolName);
       navigate('/dashboard');
     } catch (err) {
@@ -50,27 +61,63 @@ const Register = () => {
         <form className="form-group" onSubmit={handleSubmit}>
           <label className="form-label">
             Your name
-            <input className="form-input" type="text" placeholder="Jane Wanjiku" value={form.name} onChange={set('name')} required autoFocus />
+            <input
+              className="form-input"
+              type="text"
+              placeholder="Jane Wanjiku"
+              value={form.name}
+              onChange={set('name')}
+              required
+              autoFocus
+            />
           </label>
 
           <label className="form-label">
             School name
-            <input className="form-input" type="text" placeholder="Sunrise High School" value={form.schoolName} onChange={set('schoolName')} required />
+            <input
+              className="form-input"
+              type="text"
+              placeholder="Sunrise High School"
+              value={form.schoolName}
+              onChange={set('schoolName')}
+              required
+            />
           </label>
 
           <label className="form-label">
             Email address
-            <input className="form-input" type="email" placeholder="bursar@school.ke" value={form.email} onChange={set('email')} required />
+            <input
+              className="form-input"
+              type="email"
+              placeholder="bursar@school.ke"
+              value={form.email}
+              onChange={set('email')}
+              required
+            />
           </label>
 
           <label className="form-label">
             Password
-            <input className="form-input" type="password" placeholder="Min. 6 characters" value={form.password} onChange={set('password')} required />
+            <input
+              className="form-input"
+              type="password"
+              placeholder="Min. 6 characters"
+              value={form.password}
+              onChange={set('password')}
+              required
+            />
           </label>
 
           <label className="form-label">
             Confirm password
-            <input className="form-input" type="password" placeholder="Repeat password" value={form.confirm} onChange={set('confirm')} required />
+            <input
+              className="form-input"
+              type="password"
+              placeholder="Repeat password"
+              value={form.confirm}
+              onChange={set('confirm')}
+              required
+            />
           </label>
 
           <button className="submit-btn" type="submit" disabled={loading}>
