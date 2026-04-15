@@ -25,4 +25,19 @@ export const login = async (data) => {
   return res.data;
 };
 
+export const getStats = async () => {
+  const res = await api.get("/api/stats");
+  return res.data;
+};
+
+export const getRecentPayments = async () => {
+  const res = await api.get("/api/payments/recent");
+  return res.data;
+};
+
+export const getTopUnpaid = async () => {
+  const res = await api.get("/api/students/unpaid");
+  return res.data;
+};
+
 export default api;
