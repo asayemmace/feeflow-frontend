@@ -6,19 +6,22 @@ const api = axios.create({
   baseURL: API_BASE,
 });
 
-// Registration
+// Attach JWT token to every request automatically
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('ff_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const register = async (data) => {
-  const res = await api.post("/api/auth/register", data, {
-    headers: { "Content-Type": "application/json" }
-  });
+  const res = await api.post("/api/auth/register", data);
   return res.data;
 };
 
-// Login
 export const login = async (data) => {
-  const res = await api.post("/api/auth/login", data, {
-    headers: { "Content-Type": "application/json" }
-  });
+  const res = await api.post("/api/auth/login", data);
   return res.data;
 };
 
