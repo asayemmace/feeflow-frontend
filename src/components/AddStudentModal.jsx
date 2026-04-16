@@ -1,32 +1,50 @@
 import { useState } from 'react';
-import { useStore } from '../store/useStore';
 import { X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-export default function AddStudentModal({ onClose }) {
-  const addStudent = useStore(state => state.addStudent);
+const CLASSES = [
+  'Form 1A', 'Form 1B', 'Form 1C',
+  'Form 2A', 'Form 2B', 'Form 2C',
+  'Form 3A', 'Form 3B', 'Form 3C',
+  'Form 4A', 'Form 4B', 'Form 4C',
+];
+
+const STATUSES = ['Paid', 'Partial', 'Unpaid'];
+
+export default function AddStudentModal({ onClose, onSave }) {
   const [formData, setFormData] = useState({
-    name: '', cls: 'Form 1A', parent: '', phone: ''
+    name: '', admNo: '', className: 'Form 1A', fee: '', status: 'Unpaid', paid: ''
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Auto-calculate fee based on the Form number
-    const formNum = parseInt(formData.cls.match(/\d/)[0]);
-    const feeMap = { 1: 18000, 2: 20000, 3: 22000, 4: 24000 };
-    const fee = feeMap[formNum] || 18000;
 
-    // Add to Zustand store
-    addStudent({
-      ...formData,
-      adm: `ADM-${Math.floor(1000 + Math.random() * 9000)}`, // Generate random ADM
-      form: formNum,
-      fee: fee,
-      paid: 0,
-      status: 'Unpaid'
-    });
-    
-    onClose();
+    const fee = Number(formData.fee);
+    if (!formData.name || !formData.admNo || !formData.className || Number.isNaN(fee)) return;
+
+    let paid = formData.paid !== '' ? Number(formData.paid) : 0;
+    if (Number.isNaN(paid) || paid < 0) paid = 0;
+    if (paid > fee) paid = fee;
+    if (formData.paid === '') {
+      paid = formData.status === 'Paid' ? fee : 0;
+    }
+
+    try {
+      await onSave({
+        name: formData.name,
+        admNo: formData.admNo,
+        className: formData.className,
+        fee,
+        paid,
+        status: formData.status,
+      });
+
+      toast.success('Student added successfully!');
+      onClose();
+    } catch (error) {
+      toast.error('Failed to add student. Please try again.');
+      console.error('Failed to add student', error);
+    }
   };
 
   return (
@@ -38,36 +56,79 @@ export default function AddStudentModal({ onClose }) {
         </div>
         
         <form onSubmit={handleSubmit}>
-          <div className="modal-body space-y-4">
-            <div>
-              <label>Student Full Name</label>
-              <input required type="text" className="input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. John Doe" />
-            </div>
-            
-            <div className="form-grid-2">
-              <div>
-                <label>Class / Form</label>
-                <select className="input" value={formData.cls} onChange={e => setFormData({...formData, cls: e.target.value})}>
-                  <option>Form 1A</option><option>Form 1B</option><option>Form 1C</option>
-                  <option>Form 2A</option><option>Form 2B</option><option>Form 2C</option>
-                  <option>Form 3A</option><option>Form 3B</option><option>Form 3C</option>
-                  <option>Form 4A</option><option>Form 4B</option><option>Form 4C</option>
-                </select>
-              </div>
-              <div>
-                <label>Parent/Guardian Phone</label>
-                <input required type="text" className="input" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="07XX XXX XXX" />
-              </div>
+          <div className="modal-body">
+            <div className="form-group">
+              <label className="form-label">Student Full Name</label>
+              <input
+                required
+                type="text"
+                className="form-input"
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g. John Doe"
+              />
             </div>
 
-            <div>
-              <label>Parent/Guardian Name</label>
-              <input required type="text" className="input" value={formData.parent} onChange={e => setFormData({...formData, parent: e.target.value})} placeholder="e.g. Jane Doe" />
+            <div className="form-group">
+              <label className="form-label">Admission Number</label>
+              <input
+                required
+                type="text"
+                className="form-input"
+                value={formData.admNo}
+                onChange={e => setFormData({ ...formData, admNo: e.target.value })}
+                placeholder="e.g. ADM-1234"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Class</label>
+              <select
+                className="form-input"
+                value={formData.className}
+                onChange={e => setFormData({ ...formData, className: e.target.value })}
+              >
+                {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Total Fee Amount</label>
+              <input
+                required
+                type="number"
+                className="form-input"
+                value={formData.fee}
+                onChange={e => setFormData({ ...formData, fee: e.target.value })}
+                placeholder="e.g. 22000"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Status</label>
+              <select
+                className="form-input"
+                value={formData.status}
+                onChange={e => setFormData({ ...formData, status: e.target.value })}
+              >
+                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Amount Paid (optional)</label>
+              <input
+                type="number"
+                className="form-input"
+                value={formData.paid}
+                onChange={e => setFormData({ ...formData, paid: e.target.value })}
+                placeholder="Optional, leave blank to infer from status"
+              />
             </div>
           </div>
-          
-          <div className="p-4 border-t border-[var(--border)] flex justify-end gap-3 bg-[var(--surface2)]">
-            <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
+
+          <div className="modal-head" style={{ justifyContent: 'flex-end', gap: '10px' }}>
+            <button type="button" className="btn btn-outline" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary">Save Student</button>
           </div>
         </form>
